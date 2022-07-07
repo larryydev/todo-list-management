@@ -1,0 +1,4 @@
+.DS_Store
+.gitattributes
+Pipfile
+Pipfile.lock
