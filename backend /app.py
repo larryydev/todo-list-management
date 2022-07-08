@@ -1,9 +1,7 @@
 from datetime import datetime
-import time
 from flask import Flask, request
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
-import json
 
 
 app = Flask(__name__)
