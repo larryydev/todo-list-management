@@ -1,4 +1,5 @@
 from datetime import datetime
+from dateutil import parser
 from flask import Flask, request
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
@@ -38,9 +39,6 @@ def get_all_todo():
             "created_time": t.created_time,
             "deadline": t.deadline,
         })
-    print(todo_list)
-    print(type(todo_list))
-    print(todos)
     return {"todos": todos}
 
 
@@ -49,7 +47,6 @@ def add_todo():
     new_task = request.json['task']
     new_deadline = request.json['deadline']
 
-    #date time string format -> 2022-07-12T19:41
     if new_deadline == "":
         new_todo = Todo(task = new_task)
     else:
@@ -61,20 +58,27 @@ def add_todo():
     return ('Success', 200)
 
 
-@app.route("/todo/<int:id>", methods=["PUT"])
+@app.route("/todo/<int:id>", methods=["POST"])
 def update_todo(id):
+    new_task = request.json['task']
+    new_deadline = request.json['deadline'][5:25]
+    new_deadline = parser.parse(new_deadline)
+
     todo = Todo.query.filter_by(id=id).first()
-    todo.complete = not todo.complete
+    todo.task = new_task
+    todo.deadline = new_deadline
     db.session.commit()
-    return None
+
+    return ('Success', 200)
 
 
-@app.route("/todo/<int:id>", methods=["DELETE"])
+@app.route("/todo/delete/<int:id>")
 def delete_todo(id):
     todo = Todo.query.filter_by(id=id).first()
     db.session.delete(todo)
     db.session.commit()
-    return None
+    return ('Success', 200)
+
 
 if __name__ == "__main__":
     db.create_all()

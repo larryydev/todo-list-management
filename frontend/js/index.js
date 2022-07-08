@@ -131,7 +131,7 @@ function display_todo(todos) {
                     Deadline
                 </th>
                 <th scope="col" class="px-6 py-3">
-                    <span class="sr-only">Edit</span>
+                    <span class="sr-only">Save</span>
                 </th>
                 <th scope="col" class="px-6 py-3">
                     <span class="sr-only">Delete</span>
@@ -147,20 +147,20 @@ function display_todo(todos) {
         <td scope="row" class="px-6 py-4 font-medium text-gray-900 dark:text-white whitespace-nowrap">
             ${todo["id"]}
         </td>
-        <td class="px-6 py-4">
+        <td contenteditable='true' class="px-6 py-4">
             ${todo["task"]}
         </td>
-        <td class="px-6 py-4">
+        <td class="px-6 py-4" >
             ${todo["created_time"]}
         </td>
-        <td class="px-6 py-4">
+        <td contenteditable='true' class="px-6 py-4">
             ${null_to_0(todo["deadline"])}
         </td>
         <td class="px-6 py-4 text-right">
-            <a href="#" class="font-medium text-blue-600 dark:text-blue-500 hover:underline">Edit</a>
+            <a href="#" onclick="update_todo()" class="font-medium text-blue-600 dark:text-blue-500 hover:underline">Save</a>
         </td>
         <td class="px-6 py-4 text-right">
-            <a href="#" class="font-medium text-blue-600 dark:text-blue-500 hover:underline">Delete</a>
+            <a href="#" onclick="delete_todo()" class="clicked_row font-medium text-blue-600 dark:text-blue-500 hover:underline">Delete</a>
         </td>
         </tr>`;
 
@@ -242,10 +242,86 @@ function sortTable(c) {
     }
 }
 
-function update_todo () {
-    
-}
-
 function delete_todo () {
 
+    console.log("DELETE");
+
+    let id;
+    
+    var table = document.getElementsByTagName("table")[0];
+    var tbody = table.getElementsByTagName("tbody")[0];
+    tbody.onclick = function (e) {
+        e = e || window.event;
+        var target = e.srcElement || e.target;
+        while (target && target.nodeName !== "TR") {
+            target = target.parentNode;
+        }
+        if (target) {
+            var cells = target.getElementsByTagName("td");
+            id = cells[0].innerHTML.trim();
+        }
+
+        alert(typeof(id));
+
+        let url = `http://127.0.0.1:5000/todo/delete/${id}`;
+
+        alert(url);
+
+        fetch(url)
+        .then(res => res.text()) 
+        .then(res => console.log(res))
+    };
+
+}
+
+function update_todo () {
+    console.log("SAVE");
+
+    let id, task, deadline;
+
+    var table = document.getElementsByTagName("table")[0];
+    var tbody = table.getElementsByTagName("tbody")[0];
+    tbody.onclick = function (e) {
+        e = e || window.event;
+        var target = e.srcElement || e.target;
+        while (target && target.nodeName !== "TR") {
+            target = target.parentNode;
+        }
+        if (target) {
+            var cells = target.getElementsByTagName("td");
+            id = cells[0].innerHTML.trim();
+            task = cells[1].innerHTML.trim();
+            deadline = cells[3].innerHTML.trim();
+        }
+
+        let post_json = {
+            "task": task,
+            "deadline": deadline
+        }
+
+        console.log(post_json);
+
+        let url = `http://127.0.0.1:5000/todo/${id}`;
+
+        fetch(url, {
+            method: 'POST',
+            mode: 'cors',
+
+            headers: {
+                'Content-type': 'application/json; charset=UTF-8'
+            },
+
+            body: JSON.stringify(post_json),
+
+            }).then(function (response) {
+                if (response.ok) {
+                    return response.json();
+                }
+                return Promise.reject(response);
+            }).then(function (data) {
+                console.log(data);
+            }).catch(function (error) {
+                console.warn('Something went wrong.', error);
+        });
+    };
 }
